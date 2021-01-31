@@ -1,0 +1,1 @@
+docker run -it --rm -v D:/OneDrive/Repositories/projects/deephoto:/tmp -w /tmp tensorflow/tensorflow bash

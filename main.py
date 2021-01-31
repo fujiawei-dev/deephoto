@@ -11,9 +11,9 @@ import schedule
 from deephoto import analysis_face, recommend_photo_fit
 
 # 首次分析
+# analysis_face()
 recommend_photo_fit()
 
-# analysis_face()
 #
 #
 # def run_threaded(job_func):

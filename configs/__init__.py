@@ -35,6 +35,12 @@ except Exception:
 
 def is_file(filepath: str) -> Tuple[bool, Path]:
     for original in Originals:
-        if (path := original / filepath).is_file():
-            return True, path.as_posix()
-    return False, Root.as_posix()
+        path = original / filepath
+
+        while len(path.suffixes) > 1:
+            path = path.with_suffix('')
+
+        if path.is_file():
+            return True, path
+
+    return False, filepath

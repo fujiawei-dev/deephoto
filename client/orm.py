@@ -17,7 +17,8 @@ from playhouse.shortcuts import ReconnectMixin
 
 from client.relation import Relation
 
-log = get_logger("mysql", level="warning")
+# log = get_logger("mysql", level="warning")
+log = get_logger("mysql", level="debug")
 
 
 # manager = enlighten.get_manager()
@@ -46,6 +47,7 @@ class Photos(Model):
 
     id = IntegerField()
     photo_uid = CharField()
+    photo_type = CharField()
     deleted_at = DateTimeField()
 
     views = IntegerField()  # 浏览次数
@@ -117,8 +119,8 @@ class Photoprism(object):
     # TODO 分布式
     def select_deepface_photos(self) -> Union[Select, Iterable[Photos]]:
         select = self.photos.select(Photos, Files).join(Files).where(
-                (Photos.learned.in_([0, 2])) & (Files.file_root == "/") &
-                (Files.file_type.in_(["jpg", "png"])) &
+                (Photos.learned.in_([0, 2])) & (Photos.photo_type == "image") &
+                (Files.file_root == "/") & (Files.file_type.in_(["jpg", "png"])) &
                 (Photos.deleted_at == None)).limit(256)  # pylint: disable
         log.debug(select)
         return select
@@ -134,7 +136,8 @@ class Photoprism(object):
 
     def select_recommender_fit(self) -> Union[Select, Iterable[Photos]]:
         select = self.photos.select(Photos, Files).join(Files).where(
-                Photos.learned.in_([0, 1]) & Photos.like != 0).limit(200)
+                (Photos.learned.in_([0, 1])) & (Photos.like != 0)
+                & (Files.file_root == "/")).limit(200)
         log.debug(select)
         return select
 
@@ -159,3 +162,8 @@ class Photoprism(object):
                                    photo_rank=photo_rank).where(Photos.id == id_)
         log.debug(query)
         query.execute()
+
+    def select_deleted_photos(self) -> Union[Select, Iterable[Photos]]:
+        select = self.photos.select(Photos, Files).join(Files).where(Photos.deleted_at != None)  # pylint: disable
+        log.debug(select)
+        return select

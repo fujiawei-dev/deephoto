@@ -81,30 +81,38 @@ def recommend_photo_fit():
                 file, photo_path = is_file(photo.files.file_name)
 
                 if not file:
+                    # 视频文件出现必然是已经删除
                     log.warning("%s is not exist" % photo_path)
                     delete_photo(photo.photo_uid)
                     continue
+
+                photo_suffix = photo_path.suffix
+                photo_path = photo_path.as_posix()
 
                 views = photo.views
                 last_visited_at = photo.last_visited_at
                 like = photo.like
                 rank = get_rank(like, views, last_visited_at)
 
-                image_paths.append(photo_path)
-                ranks.append(rank)
+                if photo_suffix in (".jpg", ".jpeg", ".png"):
+                    image_paths.append(photo_path)
+                    ranks.append(rank)
 
-                if photo.deleted_at and photo.learned == 2:
+                if photo.deleted_at:
                     log.warning("%s will be deleted" % photo_path)
                     delete_list.append((photo.photo_uid, photo_path))
                     continue
 
-                photoprism.update_recommender(photo.id, photo.learned + 1, rank)
+                photoprism.update_recommender(photo.id, photo.learned + 2, rank)
+
+            if len(image_paths) < 100:
+                break
 
             recommender.fit(image_paths, ranks)
 
             for photo_uid, photo_path in delete_list:
-                delete_photo(photo_uid)
                 send2trash(photo_path)
+                delete_photo(photo_uid)
 
         log.info("At present, all photos have been fit")
         recommend_photo_fit_semaphore.release()

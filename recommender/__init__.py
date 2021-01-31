@@ -1,7 +1,7 @@
 '''
 Date: 2021-01-14 17:04:28
 LastEditors: Rustle Karl
-LastEditTime: 2021-01-15 16:25:31
+LastEditTime: 2021-01-24 11:30:10
 '''
 import os
 
@@ -14,12 +14,13 @@ from recommender.model import load_model
 
 # TODO 时间惩罚因子，最后浏览时间
 def get_rank(like: int, views: int, last_visited_at=None) -> int:
-    if views == 0:
-        rank = 0
-    elif like < 0:
+    if views == 0 and like == 0:
+        return 0
+    views = 1 if views == 0 else views
+    if like < 0:
         rank = np.log2(views) / np.log2(16)
     elif like > 0:
-        rank = np.log2(views)
+        rank = np.log2(views)+1
     else:
         rank = np.log2(views) / np.log2(4)
 
